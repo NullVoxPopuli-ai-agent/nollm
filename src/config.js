@@ -87,6 +87,9 @@ function resolveRules(overrides = {}, words = []) {
 }
 
 function customRule(id, override) {
+  if (typeof override.check === "function") {
+    return { id, message: override.message ?? id, check: override.check, scope: override.scope };
+  }
   return {
     id,
     message: override.message ?? id,
@@ -102,7 +105,9 @@ function toGlobal(id, pattern, flags = "") {
   if (pattern instanceof RegExp) {
     return pattern.global ? pattern : new RegExp(pattern.source, pattern.flags + "g");
   }
-  throw new Error(`Rule "${id}" needs a pattern: a RegExp, or a string with optional flags`);
+  throw new Error(
+    `Rule "${id}" needs a pattern (a RegExp, or a string with optional flags) or a check function`,
+  );
 }
 
 function isObject(value) {

@@ -1,5 +1,8 @@
+import { uniformParagraphs, uniformSentences, wallOfText } from "./shape.js";
+
 /**
- * A rule is a regular expression plus a message.
+ * A rule is a regular expression plus a message,
+ * or a check function that reads all lines at once.
  *
  * scope controls where the rule runs:
  *   prose      → markdown and text files
@@ -9,6 +12,9 @@
  * A rule with no scope runs in prose and in comments.
  *
  * Patterns must have the g flag.
+ *
+ * A check function gets the segments of one file and the scope
+ * they came from. It returns { line, column, text } per finding.
  */
 
 function words(list) {
@@ -319,5 +325,21 @@ export const rules = [
     message: "Comment narrates what the code does. Say why, or delete it",
     pattern: new RegExp(String.raw`${COMMENT_START}(?:${words(WHAT_COMMENT_STARTS)})\b`, "gmi"),
     scope: "comments",
+  },
+  {
+    id: "wall-of-text",
+    message: "Wall of text. Split the paragraph",
+    check: wallOfText,
+  },
+  {
+    id: "uniform-paragraphs",
+    message: "Consecutive paragraphs of the same length",
+    check: uniformParagraphs,
+    scope: "prose",
+  },
+  {
+    id: "uniform-sentences",
+    message: "Sentences of the same length. Vary the rhythm",
+    check: uniformSentences,
   },
 ];

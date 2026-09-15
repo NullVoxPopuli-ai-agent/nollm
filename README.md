@@ -124,6 +124,10 @@ export default {
 
 In JSON configs, write the pattern as a string and add flags in a `flags` key.
 
+A rule can also have a `check` function instead of a pattern.
+It gets every line of the file as `{ text, line, column }`, plus the scope, and returns findings of the same shape, plus `text`.
+The `paragraphs` export groups those lines into paragraphs with word and sentence counts.
+
 `scope` is one of:
 
 - `prose`: prose files only

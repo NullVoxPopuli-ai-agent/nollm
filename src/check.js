@@ -45,6 +45,20 @@ function run(findings, segments, rules, scope) {
     const rule = rules[r];
     if (!applies(rule, scope)) continue;
 
+    if (typeof rule.check === "function") {
+      const found = rule.check(segments, scope);
+      for (let f = 0; f < found.length; f++) {
+        findings.push({
+          line: found[f].line,
+          column: found[f].column,
+          ruleId: rule.id,
+          message: rule.message,
+          text: found[f].text,
+        });
+      }
+      continue;
+    }
+
     for (let s = 0; s < segments.length; s++) {
       const segment = segments[s];
       const pattern = rule.pattern;

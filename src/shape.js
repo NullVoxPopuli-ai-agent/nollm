@@ -1,0 +1,188 @@
+/**
+ * Shape rules look at paragraphs instead of single lines.
+ *
+ * A paragraph is a run of lines with no blank line between them.
+ * Comment markers, headings, tables, and fenced code do not count.
+ * A list item or a JSDoc tag starts a new paragraph.
+ */
+
+const MARKER = /^\s*(?:\/\/+|#+|\*+|\/\*+|<!--|--|;+|%+|"""|''')?\s*/;
+const TRAILER = /\s*(?:\*\/|-->|"""|''')\s*$/;
+const LIST_ITEM = /^(?:[-*+]|\d+[.)])\s+|^@\w+/;
+const SENTENCE_END = /[.!?]+(?:["')\]]+)?(?:\s+|$)/;
+
+export const WALL_WORDS = 120;
+export const WALL_SENTENCES = 7;
+export const UNIFORM_PARAGRAPH_MIN_WORDS = 25;
+export const UNIFORM_PARAGRAPH_SPREAD = 1.25;
+export const UNIFORM_SENTENCE_MIN_COUNT = 4;
+export const UNIFORM_SENTENCE_MIN_WORDS = 8;
+export const UNIFORM_SENTENCE_VARIATION = 0.2;
+
+/**
+ * Groups segments into paragraphs.
+ *
+ * Pass inComments: true for comment segments, so that
+ * comment markers are removed before counting.
+ *
+ * Each paragraph has:
+ *   line, column → where it starts
+ *   words        → word count
+ *   sentences    → word count per sentence
+ *   preview      → its first few words
+ */
+export function paragraphs(segments, { inComments = false } = {}) {
+  const result = [];
+  let current = null;
+  let inFence = false;
+  let previousLine = 0;
+
+  for (let i = 0; i < segments.length; i++) {
+    const segment = segments[i];
+    const text = inComments ? strip(segment.text) : segment.text.trim();
+
+    if (text.startsWith("```") || text.startsWith("~~~")) {
+      inFence = !inFence;
+      current = null;
+      continue;
+    }
+
+    const gap = segment.line !== previousLine + 1;
+    previousLine = segment.line;
+
+    if (inFence || text.length === 0 || text.startsWith("#") || text.startsWith("|")) {
+      current = null;
+      continue;
+    }
+
+    if (gap || current === null || LIST_ITEM.test(text)) {
+      current = { line: segment.line, column: segment.column, text: "" };
+      result.push(current);
+    }
+
+    current.text += current.text.length === 0 ? text : " " + text;
+  }
+
+  for (let i = 0; i < result.length; i++) {
+    const paragraph = result[i];
+    const sentences = sentenceLengths(paragraph.text);
+    let words = 0;
+    for (let s = 0; s < sentences.length; s++) words += sentences[s];
+    paragraph.sentences = sentences;
+    paragraph.words = words;
+    paragraph.preview = preview(paragraph.text);
+    delete paragraph.text;
+  }
+
+  return result;
+}
+
+export function wallOfText(segments, scope) {
+  const found = [];
+  const all = paragraphs(segments, { inComments: scope === "comments" });
+
+  for (let i = 0; i < all.length; i++) {
+    const paragraph = all[i];
+    if (paragraph.words <= WALL_WORDS && paragraph.sentences.length <= WALL_SENTENCES) continue;
+    found.push({
+      line: paragraph.line,
+      column: paragraph.column,
+      text: `${paragraph.words} words, ${paragraph.sentences.length} sentences: ${paragraph.preview}`,
+    });
+  }
+
+  return found;
+}
+
+export function uniformParagraphs(segments, scope) {
+  const found = [];
+  const all = paragraphs(segments, { inComments: scope === "comments" });
+  let start = 0;
+
+  while (start < all.length) {
+    let end = start;
+    let min = all[start].words;
+    let max = min;
+
+    while (end + 1 < all.length) {
+      const next = all[end + 1].words;
+      const lo = Math.min(min, next);
+      const hi = Math.max(max, next);
+      if (lo < UNIFORM_PARAGRAPH_MIN_WORDS || hi > lo * UNIFORM_PARAGRAPH_SPREAD) break;
+      min = lo;
+      max = hi;
+      end++;
+    }
+
+    if (end - start >= 2 && min >= UNIFORM_PARAGRAPH_MIN_WORDS) {
+      const counts = [];
+      for (let i = start; i <= end; i++) counts.push(all[i].words);
+      found.push({
+        line: all[start].line,
+        column: all[start].column,
+        text: `${counts.length} paragraphs of ${counts.join(", ")} words`,
+      });
+      start = end + 1;
+    } else {
+      start++;
+    }
+  }
+
+  return found;
+}
+
+export function uniformSentences(segments, scope) {
+  const found = [];
+  const all = paragraphs(segments, { inComments: scope === "comments" });
+
+  for (let i = 0; i < all.length; i++) {
+    const lengths = all[i].sentences;
+    if (lengths.length < UNIFORM_SENTENCE_MIN_COUNT) continue;
+
+    const mean = all[i].words / lengths.length;
+    if (mean < UNIFORM_SENTENCE_MIN_WORDS) continue;
+
+    let squares = 0;
+    for (let s = 0; s < lengths.length; s++) squares += (lengths[s] - mean) ** 2;
+    const variation = Math.sqrt(squares / lengths.length) / mean;
+    if (variation >= UNIFORM_SENTENCE_VARIATION) continue;
+
+    found.push({
+      line: all[i].line,
+      column: all[i].column,
+      text: `${lengths.length} sentences of ${lengths.join(", ")} words`,
+    });
+  }
+
+  return found;
+}
+
+function strip(text) {
+  return text.replace(TRAILER, "").replace(MARKER, "").trim();
+}
+
+function sentenceLengths(text) {
+  const parts = text.split(SENTENCE_END);
+  const lengths = [];
+  for (let i = 0; i < parts.length; i++) {
+    const count = wordCount(parts[i]);
+    if (count > 0) lengths.push(count);
+  }
+  return lengths;
+}
+
+function wordCount(text) {
+  let count = 0;
+  let inWord = false;
+  for (let i = 0; i < text.length; i++) {
+    const space = text.charCodeAt(i) <= 32;
+    if (!space && !inWord) count++;
+    inWord = !space;
+  }
+  return count;
+}
+
+function preview(text) {
+  const words = text.split(/\s+/, 6);
+  return words.join(" ") + (words.length === 6 ? "..." : "");
+}

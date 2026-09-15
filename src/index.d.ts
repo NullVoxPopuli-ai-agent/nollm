@@ -1,11 +1,26 @@
 export type Scope = "prose" | "comments" | "everywhere";
 
-export interface Rule {
+export interface PatternRule {
   id: string;
   message: string;
   pattern: RegExp;
   scope?: Scope;
 }
+
+export interface ShapeFinding {
+  line: number;
+  column: number;
+  text: string;
+}
+
+export interface CheckRule {
+  id: string;
+  message: string;
+  check: (segments: Segment[], scope: Scope) => ShapeFinding[];
+  scope?: Scope;
+}
+
+export type Rule = PatternRule | CheckRule;
 
 export interface Finding {
   line: number;
@@ -48,8 +63,9 @@ export interface Config {
 }
 
 export interface RuleConfig {
-  pattern: RegExp | string;
+  pattern?: RegExp | string;
   flags?: string;
+  check?: (segments: Segment[], scope: Scope) => ShapeFinding[];
   message?: string;
   scope?: Scope;
 }
@@ -83,6 +99,15 @@ export function collectFiles(
 ): Promise<string[]>;
 export function extractComments(source: string, language: Language): Segment[];
 export function extractLines(source: string): Segment[];
+export function paragraphs(segments: Segment[], options?: { inComments?: boolean }): Paragraph[];
+
+export interface Paragraph {
+  line: number;
+  column: number;
+  words: number;
+  sentences: number[];
+  preview: string;
+}
 export function findConfig(cwd: string): Promise<string | null>;
 export function loadConfig(configPath: string | null): Promise<Config>;
 export function lint(options?: LintOptions): Promise<Summary>;
