@@ -31,25 +31,43 @@ async function project() {
 }
 
 describe("cli", () => {
-  test("prints one line per finding and exits with 1", async () => {
+  test("groups findings by file and rule and exits with 1", async () => {
     const dir = await project();
     const { code, stdout } = await nollm(["--no-git", "--jobs", "2"], dir);
     expect(code).toBe(1);
     expect(stdout).toContain(
-      'README.md:3:14  filler-word  Filler. Delete it or replace it: "simply"',
+      [
+        "src/math.py",
+        "  filler-word  Filler. Delete it or replace it",
+        '    2:8  "Simply"',
+        "  llm-vocabulary  LLM vocabulary",
+        '    2:39  "crucial"',
+        "  what-comment  Comment narrates what the code does. Say why, or delete it",
+        '    3:19  "# increment"',
+        "",
+      ].join("\n"),
     );
     expect(stdout).toContain(
-      'src/index.js:1:1  what-comment  Comment narrates what the code does. Say why, or delete it: "// This function"',
+      [
+        "  error-exclamation  Error message with an exclamation instead of a cause",
+        // nollm-ignore-next-line
+        '    8:25  "Oops"',
+        // nollm-ignore-next-line
+        '    8:31  "Something went wrong"',
+      ].join("\n"),
     );
-    expect(stdout).toContain(
-      // nollm-ignore-next-line
-      'src/index.js:8:25  error-exclamation  Error message with an exclamation instead of a cause: "Oops"',
-    );
-    expect(stdout).toContain(
-      'src/math.py:2:8  filler-word  Filler. Delete it or replace it: "Simply"',
-    );
+    expect(stdout).toContain('    3:14  "simply"');
     expect(stdout).not.toContain("notes.txt");
     expect(stdout).toMatch(/\d+ problems in 3 files \(5 files checked, [\d.]+s\)\n$/);
+  });
+
+  test("pads coordinates within a rule group", async () => {
+    const dir = await project();
+    const { stdout } = await nollm(["--no-git", "src/index.js"], dir);
+    // nollm-ignore-next-line
+    expect(stdout).toContain('    8:25  "Oops"\n    8:31  ');
+    const { stdout: readme } = await nollm(["--no-git", "README.md"], dir);
+    expect(readme).toMatch(/^ {4}\d+:\d+ {2,3}"/m);
   });
 
   test("skips files that git ignores", async () => {

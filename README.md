@@ -47,12 +47,21 @@ Paths can be files or directories.
 
 The exit code is 1 when there are findings, and 2 on a usage error.
 
-Output looks like this:
+Output is one block per file, grouped by rule:
 
 ```
-README.md:3:14  filler-word  Filler. Delete it or replace it: "simply"
-src/index.js:1:1  what-comment  Comment narrates what the code does. Say why, or delete it: "// This function"
-2 problems in 2 files (5 files checked, 0.07s)
+README.md
+  filler-word  Filler. Delete it or replace it
+    3:14  "simply"
+    3:33  "robust"
+  chat-opener  Chat opener. Start with the answer
+    7:1   "Great question"
+
+src/index.js
+  what-comment  Comment narrates what the code does. Say why, or delete it
+    1:1  "// This function"
+
+4 problems in 2 files (5 files checked, 0.07s)
 ```
 
 ## What gets checked

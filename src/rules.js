@@ -257,7 +257,7 @@ export const rules = [
   {
     id: "bold-list-item",
     message: "List item with a bold label followed by plain text",
-    pattern: /^\s*(?:[-*+]|\d+[.)])\s+(?:\*\*[^*\n]{1,80}\*\*|__[^_\n]{1,80}__):?\s+[^\s*_]/gm,
+    pattern: /^\s*(?:[-*+]|\d+[.)])\s+(?:\*\*[^*\n]{1,80}\*\*|__[^_\n]{1,80}__):?(?=\s+[^\s*_])/gm,
     scope: "prose",
   },
   {
