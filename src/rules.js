@@ -249,9 +249,9 @@ export const rules = [
     pattern: /\u2014/g,
   },
   {
-    id: "bold-fragment",
-    message: "Bold fragment followed by plain text",
-    pattern: /^\s*(?:[-*+]|\d+[.)])?\s*(?:\*\*[^*\n]{1,80}\*\*|__[^_\n]{1,80}__):?\s+\S/gm,
+    id: "bold-list-item",
+    message: "List item with a bold label followed by plain text",
+    pattern: /^\s*(?:[-*+]|\d+[.)])\s+(?:\*\*[^*\n]{1,80}\*\*|__[^_\n]{1,80}__):?\s+[^\s*_]/gm,
     scope: "prose",
   },
   {
@@ -302,9 +302,11 @@ export const rules = [
     scope: "prose",
   },
   {
-    id: "emoji",
-    message: "Emoji",
-    pattern: /(?:\p{Emoji_Presentation}|\p{Extended_Pictographic}\uFE0F)/gu,
+    id: "emoji-list",
+    message: "List item that starts with an emoji",
+    pattern:
+      /^\s*(?:[-*+]|\d+[.)])\s+(?:\p{Emoji_Presentation}|\p{Extended_Pictographic}\uFE0F)/gmu,
+    scope: "prose",
   },
   {
     id: "diff-comment",

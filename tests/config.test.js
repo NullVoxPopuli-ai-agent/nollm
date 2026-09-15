@@ -59,13 +59,13 @@ describe("config", () => {
       ignore: ["docs/**"],
       words: ["synergy"],
       rules: {
-        "emoji": false,
+        "emoji-list": false,
         "todo": { pattern: /TODO/, message: "Open TODO", scope: "comments" },
       },
     };\n`);
     const config = await loadConfig(path);
     const ids = config.rules.map((rule) => rule.id);
-    expect(ids).not.toContain("emoji");
+    expect(ids).not.toContain("emoji-list");
     expect(ids).toContain("todo");
     expect(ids).toContain("custom-word");
     expect(config.ignore).toContain("docs/**");
