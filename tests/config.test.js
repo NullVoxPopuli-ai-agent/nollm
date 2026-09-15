@@ -1,7 +1,7 @@
 import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
-import { defaultRules, findConfig, loadConfig } from "../src/index.js";
+import { findConfig, loadConfig, rules } from "../src/index.js";
 import { copyFixture } from "./helpers.js";
 
 let cleanup = async () => {};
@@ -21,8 +21,7 @@ async function withConfig(source) {
 describe("config", () => {
   test("uses the built in rules without a config file", async () => {
     const config = await loadConfig(null);
-    expect(config.rules).toEqual(defaultRules);
-    expect(config.rules.map((rule) => rule.id)).not.toContain("em-dash");
+    expect(config.rules).toEqual(rules);
     expect(config.ignore).toContain("pnpm-lock.yaml");
   });
 
@@ -79,10 +78,15 @@ describe("config", () => {
     expect(todo.scope).toBe("comments");
   });
 
-  test("turns on a rule that is off by default", async () => {
-    const { path } = await withConfig('export default { rules: { "em-dash": true } };\n');
+  test("changes the scope of a built in rule and keeps its pattern", async () => {
+    const { path } = await withConfig(
+      'export default { rules: { "em-dash": { scope: "text" } } };\n',
+    );
     const config = await loadConfig(path);
-    expect(config.rules.map((rule) => rule.id)).toContain("em-dash");
+    const emDash = config.rules.find((rule) => rule.id === "em-dash");
+    expect(emDash.scope).toBe("text");
+    expect(emDash.pattern.source).toBe(rules.find((rule) => rule.id === "em-dash").pattern.source);
+    expect(emDash.message).toContain("Em dash");
   });
 
   test("rejects a rule without a RegExp", async () => {

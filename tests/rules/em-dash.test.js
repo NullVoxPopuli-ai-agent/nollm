@@ -1,21 +1,18 @@
 import { describe, expect, test } from "vitest";
-import { check, rules } from "../../src/index.js";
-import { ids, prose } from "../helpers.js";
-
-function withEmDash(text) {
-  return check("doc.md", text, rules);
-}
+import { check } from "../../src/index.js";
+import { comment, ids, prose } from "../helpers.js";
 
 describe("em-dash", () => {
-  test("is off by default", () => {
+  test("flags the em dash character in comments", () => {
+    expect(ids(comment("one \u2014 two"))).toEqual(["em-dash"]);
+    expect(ids(check("a.py", "# one \u2014 two\n"))).toEqual(["em-dash"]);
+  });
+
+  test("allows em dashes in prose", () => {
     expect(prose("one \u2014 two")).toEqual([]);
   });
 
-  test("flags the em dash character when on", () => {
-    expect(ids(withEmDash("one \u2014 two"))).toEqual(["em-dash"]);
-  });
-
   test("allows hyphens and en dashes", () => {
-    expect(withEmDash("one - two \u2013 three")).toEqual([]);
+    expect(comment("one - two \u2013 three")).toEqual([]);
   });
 });

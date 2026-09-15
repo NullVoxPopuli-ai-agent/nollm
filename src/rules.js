@@ -7,11 +7,8 @@ import { uniformParagraphs, uniformSentences, wallOfText } from "./shape.js";
  * scope controls where the rule runs:
  *   prose      → markdown and text files
  *   comments   → comments inside code files
+ *   text       → both of the above (the default)
  *   everywhere → every line of every file
- *
- * A rule with no scope runs in prose and in comments.
- *
- * A rule with enabled: false runs only when a config turns it on.
  *
  * Patterns must have the g flag.
  *
@@ -245,7 +242,7 @@ export const rules = [
     id: "em-dash",
     message: "Em dash. Use a comma, a colon, or a new sentence",
     pattern: /\u2014/g,
-    enabled: false,
+    scope: "comments",
   },
   {
     id: "bold-list-item",
@@ -330,8 +327,3 @@ export const rules = [
     check: uniformSentences,
   },
 ];
-
-/**
- * The rules that run without a config.
- */
-export const defaultRules = rules.filter((rule) => rule.enabled !== false);

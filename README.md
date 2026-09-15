@@ -92,9 +92,11 @@ Files of other types, binary files, lockfiles, minified files, and files over 2 
 | `diff-comment`        | Comments about the change: "no longer", "as discussed", "previously"    |
 | `what-comment`        | Comments that narrate the code: "This function returns", "Loop over"    |
 
-Run `nollm --list-rules` for the full list.
+Run `nollm --list-rules` for the full list with the scope of each rule.
 
-`em-dash` is off by default. Turn it on in the config with `"em-dash": true`.
+Prose and comments get different rules.
+For example, `em-dash` runs in code comments and not in markdown.
+To change where a rule runs, set its `scope` in the config.
 
 ## Configuration
 
@@ -121,8 +123,8 @@ export default {
     // turn a rule off
     "chat-opener": false,
 
-    // turn on a rule that is off by default
-    "em-dash": true,
+    // run a built in rule somewhere else
+    "em-dash": { scope: "text" },
 
     // add a rule, or replace a built in one
     "open-todo": {
@@ -144,9 +146,10 @@ The `paragraphs` export groups those lines into paragraphs with word and sentenc
 
 - `prose`: prose files only
 - `comments`: comments in code files only
+- `text`: prose and comments. This is the default
 - `everywhere`: every line of every file
 
-A rule with no scope runs in prose and in comments.
+A config entry for a built in rule can change only `scope` or `message`. The pattern stays.
 
 To silence one line, put `nollm-ignore-next-line` on the line before it.
 To silence a whole file, put `nollm-ignore-file` anywhere in it.

@@ -64,8 +64,7 @@ function resolveRules(overrides = {}, words = []) {
     const rule = builtinRules[i];
     const override = overrides[rule.id];
     if (override === false) continue;
-    if (rule.enabled === false && override !== true && !isObject(override)) continue;
-    rules.push(isObject(override) ? customRule(rule.id, override) : rule);
+    rules.push(isObject(override) ? customRule(rule.id, override, rule) : rule);
   }
 
   for (const id in overrides) {
@@ -87,15 +86,23 @@ function resolveRules(overrides = {}, words = []) {
   return rules;
 }
 
-function customRule(id, override) {
-  if (typeof override.check === "function") {
-    return { id, message: override.message ?? id, check: override.check, scope: override.scope };
+/**
+ * Builds a rule from a config entry.
+ * Keys that the entry leaves out come from the built in rule, when there is one.
+ */
+function customRule(id, override, base = {}) {
+  const message = override.message ?? base.message ?? id;
+  const scope = override.scope ?? base.scope;
+  const check = override.check ?? (override.pattern === undefined ? base.check : undefined);
+
+  if (typeof check === "function") {
+    return { id, message, check, scope };
   }
   return {
     id,
-    message: override.message ?? id,
-    pattern: toGlobal(id, override.pattern, override.flags),
-    scope: override.scope,
+    message,
+    pattern: toGlobal(id, override.pattern ?? base.pattern, override.flags),
+    scope,
   };
 }
 
