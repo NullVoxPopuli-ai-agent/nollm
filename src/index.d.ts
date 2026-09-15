@@ -5,6 +5,7 @@ export interface PatternRule {
   message: string;
   pattern: RegExp;
   scope?: Scope;
+  enabled?: boolean;
 }
 
 export interface ShapeFinding {
@@ -18,6 +19,7 @@ export interface CheckRule {
   message: string;
   check: (segments: Segment[], scope: Scope) => ShapeFinding[];
   scope?: Scope;
+  enabled?: boolean;
 }
 
 export type Rule = PatternRule | CheckRule;
@@ -87,6 +89,7 @@ export interface LintOptions {
 }
 
 export const rules: Rule[];
+export const defaultRules: Rule[];
 export const SEARCH_PLACES: string[];
 
 export function check(filePath: string, source: string, rules?: Rule[]): Finding[];

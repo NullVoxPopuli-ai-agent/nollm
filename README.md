@@ -94,6 +94,8 @@ Files of other types, binary files, lockfiles, minified files, and files over 2 
 
 Run `nollm --list-rules` for the full list.
 
+`em-dash` is off by default. Turn it on in the config with `"em-dash": true`.
+
 ## Configuration
 
 `nollm` finds its config with [lilconfig](https://github.com/antonk52/lilconfig).
@@ -117,7 +119,10 @@ export default {
 
   rules: {
     // turn a rule off
-    "em-dash": false,
+    "chat-opener": false,
+
+    // turn on a rule that is off by default
+    "em-dash": true,
 
     // add a rule, or replace a built in one
     "open-todo": {

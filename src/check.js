@@ -1,6 +1,6 @@
 import { classify } from "./languages.js";
 import { extractComments, extractLines } from "./comments.js";
-import { rules as builtinRules } from "./rules.js";
+import { defaultRules } from "./rules.js";
 
 const IGNORE_FILE = "nollm-ignore-file";
 const IGNORE_NEXT = "nollm-ignore-next-line";
@@ -14,7 +14,7 @@ const IGNORE_NEXT = "nollm-ignore-next-line";
  * A line that contains nollm-ignore-next-line silences the line after it.
  * A file that contains nollm-ignore-file returns no findings.
  */
-export function check(filePath, source, rules = builtinRules) {
+export function check(filePath, source, rules = defaultRules) {
   const kind = classify(filePath);
   if (!kind) return [];
   if (source.includes(IGNORE_FILE)) return [];

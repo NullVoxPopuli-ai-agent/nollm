@@ -64,6 +64,7 @@ function resolveRules(overrides = {}, words = []) {
     const rule = builtinRules[i];
     const override = overrides[rule.id];
     if (override === false) continue;
+    if (rule.enabled === false && override !== true && !isObject(override)) continue;
     rules.push(isObject(override) ? customRule(rule.id, override) : rule);
   }
 

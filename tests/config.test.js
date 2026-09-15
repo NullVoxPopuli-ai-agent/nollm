@@ -1,7 +1,7 @@
 import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
-import { findConfig, loadConfig, rules } from "../src/index.js";
+import { defaultRules, findConfig, loadConfig } from "../src/index.js";
 import { copyFixture } from "./helpers.js";
 
 let cleanup = async () => {};
@@ -21,7 +21,8 @@ async function withConfig(source) {
 describe("config", () => {
   test("uses the built in rules without a config file", async () => {
     const config = await loadConfig(null);
-    expect(config.rules).toEqual(rules);
+    expect(config.rules).toEqual(defaultRules);
+    expect(config.rules.map((rule) => rule.id)).not.toContain("em-dash");
     expect(config.ignore).toContain("pnpm-lock.yaml");
   });
 
@@ -34,10 +35,13 @@ describe("config", () => {
     const copy = await copyFixture("project");
     cleanup = copy.cleanup;
     const path = join(copy.dir, "package.json");
-    await writeFile(path, '{ "name": "fixture", "nollm": { "rules": { "em-dash": false } } }\n');
+    await writeFile(
+      path,
+      '{ "name": "fixture", "nollm": { "rules": { "chat-opener": false } } }\n',
+    );
     expect(await findConfig(copy.dir)).toBe(path);
     const config = await loadConfig(path);
-    expect(config.rules.map((rule) => rule.id)).not.toContain("em-dash");
+    expect(config.rules.map((rule) => rule.id)).not.toContain("chat-opener");
   });
 
   test("reads string patterns from JSON configs", async () => {
@@ -73,6 +77,12 @@ describe("config", () => {
     const todo = config.rules.find((rule) => rule.id === "todo");
     expect(todo.pattern.flags).toContain("g");
     expect(todo.scope).toBe("comments");
+  });
+
+  test("turns on a rule that is off by default", async () => {
+    const { path } = await withConfig('export default { rules: { "em-dash": true } };\n');
+    const config = await loadConfig(path);
+    expect(config.rules.map((rule) => rule.id)).toContain("em-dash");
   });
 
   test("rejects a rule without a RegExp", async () => {

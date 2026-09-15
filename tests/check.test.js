@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { check, classify } from "../src/index.js";
+import { check, classify, rules } from "../src/index.js";
 import { ids } from "./helpers.js";
 
 describe("check", () => {
@@ -28,7 +28,7 @@ describe("check", () => {
   });
 
   test("sorts findings by position", () => {
-    const findings = check("a.md", "delve — genuinely\nsimply\n");
+    const findings = check("a.md", "delve — genuinely\nsimply\n", rules);
     expect(ids(findings)).toEqual(["llm-vocabulary", "em-dash", "banned-word", "filler-word"]);
   });
 

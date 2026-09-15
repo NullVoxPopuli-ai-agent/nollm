@@ -60,7 +60,8 @@ export async function main(
 
   if (values["list-rules"]) {
     for (let i = 0; i < rules.length; i++) {
-      stdout.write(`${rules[i].id.padEnd(20)} ${rules[i].message}\n`);
+      const state = rules[i].enabled === false ? "  (off by default)" : "";
+      stdout.write(`${rules[i].id.padEnd(20)} ${rules[i].message}${state}\n`);
     }
     return 0;
   }
