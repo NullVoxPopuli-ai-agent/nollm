@@ -156,16 +156,6 @@ const AI_DISCLOSURES = [
   "my training data",
 ];
 
-const ERROR_EXCLAMATIONS = [
-  "uh oh",
-  "uh-oh",
-  "oh no",
-  "oops",
-  "whoops",
-  "there seems to be a problem",
-  "something went wrong",
-];
-
 const DIFF_TALK = [
   "as requested",
   "as discussed",
@@ -287,12 +277,6 @@ export const rules = [
     id: "ai-disclosure",
     message: "Text written from the point of view of a chat assistant",
     pattern: anyOf(AI_DISCLOSURES),
-  },
-  {
-    id: "error-exclamation",
-    message: "Error message with an exclamation instead of a cause",
-    pattern: anyOf(ERROR_EXCLAMATIONS),
-    scope: "everywhere",
   },
   {
     id: "contrast-cliche",

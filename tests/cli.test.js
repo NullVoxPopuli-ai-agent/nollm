@@ -49,11 +49,11 @@ describe("cli", () => {
     );
     expect(stdout).toContain(
       [
-        "  error-exclamation  Error message with an exclamation instead of a cause",
-        // nollm-ignore-next-line
-        '    8:25  "Oops"',
-        // nollm-ignore-next-line
-        '    8:31  "Something went wrong"',
+        "src/index.js",
+        "  what-comment  Comment narrates what the code does. Say why, or delete it",
+        '    1:1  "// This function"',
+        "  diff-comment  Comment describes the change, not the code. Put it in the commit message",
+        '    3:6  "no longer"',
       ].join("\n"),
     );
     expect(stdout).toContain('    3:14  "simply"');
@@ -63,11 +63,9 @@ describe("cli", () => {
 
   test("pads coordinates within a rule group", async () => {
     const dir = await project();
-    const { stdout } = await nollm(["--no-git", "src/index.js"], dir);
-    // nollm-ignore-next-line
-    expect(stdout).toContain('    8:25  "Oops"\n    8:31  ');
-    const { stdout: readme } = await nollm(["--no-git", "README.md"], dir);
-    expect(readme).toMatch(/^ {4}\d+:\d+ {2,3}"/m);
+    const { stdout } = await nollm(["--no-git", "README.md"], dir);
+    expect(stdout).toContain('    3:14  "simply"\n    3:30  "robust"\n');
+    expect(stdout).toMatch(/^ {4}\d+:\d+ {2,3}"/m);
   });
 
   test("skips files that git ignores", async () => {

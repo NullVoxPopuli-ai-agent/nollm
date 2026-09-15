@@ -71,7 +71,6 @@ Every line is checked.
 
 Code files: JavaScript, TypeScript, Python, Ruby, Rust, Go, shell, YAML, TOML, HTML, Handlebars, `.gjs`, `.gts`, and many more.
 Only comments are checked, so identifiers and string contents do not trigger rules.
-The `error-exclamation` rule is the exception. It checks every line, because it targets error strings.
 
 Files of other types, binary files, lockfiles, minified files, and files over 2 MB are skipped.
 
@@ -87,7 +86,6 @@ Files of other types, binary files, lockfiles, minified files, and files over 2 
 | `chat-opener`         | Lines that start with "Great question", "Certainly", "Let me", and more |
 | `chat-closer`         | "Hope this helps", "Let me know if", "Feel free to", and more           |
 | `ai-disclosure`       | "As an AI", "my training data", and more                                |
-| `error-exclamation`   | "Oops", "Uh oh", "Something went wrong"                                 |
 | `contrast-cliche`     | "not just X, but Y" and "it's not X, it's Y"                            |
 | `rhetorical-question` | "Why? Because" and "The result?"                                        |
 | `emoji`               | Emoji                                                                   |
