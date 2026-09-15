@@ -1,3 +1,153 @@
 # nollm
 
-lint against LLMisms in your codebase
+Lint against LLMisms in your codebase.
+
+`nollm` reads every file that git tracks or does not ignore.
+It checks prose files line by line, and code files comment by comment.
+Each finding prints as soon as it is found.
+
+```
+npx nollm
+```
+
+## Install
+
+```
+pnpm add -D nollm
+```
+
+Add a script to `package.json`:
+
+```json
+{
+  "scripts": {
+    "lint:prose": "nollm"
+  }
+}
+```
+
+Requires Node 22.13 or newer.
+
+## Usage
+
+```
+nollm [options] [paths...]
+```
+
+With no paths, `nollm` checks the current directory.
+Paths can be files or directories.
+
+| Option            | Effect                                                             |
+| ----------------- | ------------------------------------------------------------------ |
+| `--jobs <n>`      | Number of worker threads. Defaults to the CPU count.               |
+| `--config <path>` | Config file to use.                                                |
+| `--no-git`        | Do not ask git for the file list. Read `.gitignore` files instead. |
+| `--quiet`         | Print only the summary.                                            |
+| `--list-rules`    | Print every rule and exit.                                         |
+
+The exit code is 1 when there are findings, and 2 on a usage error.
+
+Output looks like this:
+
+```
+README.md:3:14  filler-word  Filler. Delete it or replace it: "simply"
+src/index.js:1:1  what-comment  Comment narrates what the code does. Say why, or delete it: "// This function"
+2 problems in 2 files (5 files checked, 0.07s)
+```
+
+## What gets checked
+
+Prose files: markdown, text, reStructuredText, AsciiDoc, and files named `README`, `CHANGELOG`, `LICENSE`, and similar.
+Every line is checked.
+
+Code files: JavaScript, TypeScript, Python, Ruby, Rust, Go, shell, YAML, TOML, HTML, Handlebars, `.gjs`, `.gts`, and many more.
+Only comments are checked, so identifiers and string contents do not trigger rules.
+The `error-exclamation` rule is the exception. It checks every line, because it targets error strings.
+
+Files of other types, binary files, lockfiles, minified files, and files over 2 MB are skipped.
+
+## Rules
+
+| Rule                  | Catches                                                                 |
+| --------------------- | ----------------------------------------------------------------------- |
+| `banned-word`         | genuinely, load-bearing, crutch, spearheaded, fails loudly, and friends |
+| `em-dash`             | The em dash character                                                   |
+| `bold-fragment`       | `**Bold label:** followed by plain text` in markdown                    |
+| `filler-word`         | simply, robust, leverage, utilize, in order to, keep in mind, and more  |
+| `llm-vocabulary`      | delve, tapestry, crucial, game-changer, battle-tested, and more         |
+| `chat-opener`         | Lines that start with "Great question", "Certainly", "Let me", and more |
+| `chat-closer`         | "Hope this helps", "Let me know if", "Feel free to", and more           |
+| `ai-disclosure`       | "As an AI", "my training data", and more                                |
+| `error-exclamation`   | "Oops", "Uh oh", "Something went wrong"                                 |
+| `contrast-cliche`     | "not just X, but Y" and "it's not X, it's Y"                            |
+| `rhetorical-question` | "Why? Because" and "The result?"                                        |
+| `emoji`               | Emoji                                                                   |
+| `diff-comment`        | Comments about the change: "no longer", "as discussed", "previously"    |
+| `what-comment`        | Comments that narrate the code: "This function returns", "Loop over"    |
+
+Run `nollm --list-rules` for the full list.
+
+## Configuration
+
+`nollm` finds its config with [lilconfig](https://github.com/antonk52/lilconfig).
+Put it in one of these places:
+
+- a `nollm` key in `package.json`
+- `.nollmrc` or `.nollmrc.json`
+- `.nollmrc.js`, `.nollmrc.cjs`, or `.nollmrc.mjs`
+- `nollm.config.js`, `nollm.config.cjs`, or `nollm.config.mjs`
+
+Parent directories are searched too.
+
+```js
+// nollm.config.js
+export default {
+  // .gitignore syntax
+  ignore: ["CHANGELOG.md", "tests/fixtures/"],
+
+  // extra banned words
+  words: ["synergy", "circle back"],
+
+  rules: {
+    // turn a rule off
+    "em-dash": false,
+
+    // add a rule, or replace a built in one
+    "open-todo": {
+      pattern: /\bTODO\b/,
+      message: "Open TODO",
+      scope: "comments",
+    },
+  },
+};
+```
+
+In JSON configs, write the pattern as a string and add flags in a `flags` key.
+
+`scope` is one of:
+
+- `prose`: prose files only
+- `comments`: comments in code files only
+- `everywhere`: every line of every file
+
+A rule with no scope runs in prose and in comments.
+
+To silence one line, put `nollm-ignore-next-line` on the line before it.
+To silence a whole file, put `nollm-ignore-file` anywhere in it.
+
+## API
+
+```js
+import { check, lint } from "nollm";
+
+const findings = check("README.md", "This is simply the best.");
+// [{ line: 1, column: 9, ruleId: "filler-word", message: "...", text: "simply" }]
+
+const summary = await lint({
+  roots: ["src", "docs"],
+  onResult({ file, findings }) {
+    // runs once per file, as soon as it is done
+  },
+});
+// { files: 12, checked: 10, findings: 3, filesWithFindings: 2 }
+```
