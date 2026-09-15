@@ -1,2 +1,3 @@
-# llm-lint
+# nollm
+
 lint against LLMisms in your codebase
