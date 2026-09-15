@@ -40,31 +40,7 @@ const BANNED_WORDS = [
   "carrying",
 ];
 
-const FILLER_WORDS = [
-  "simply",
-  "seamlessly",
-  "seamless",
-  "robust",
-  "powerful",
-  "comprehensive",
-  "leverage",
-  "leverages",
-  "leveraged",
-  "leveraging",
-  "utilize",
-  "utilizes",
-  "utilized",
-  "utilizing",
-  "in order to",
-  "prior to",
-  "in the event that",
-  "it is worth noting",
-  "it's worth noting",
-  "it is important to note",
-  "it's important to note",
-  "it should be noted",
-  "keep in mind",
-];
+const FILLER_WORDS = ["simply", "seamlessly", "seamless", "robust"];
 
 const LLM_VOCABULARY = [
   "delve",

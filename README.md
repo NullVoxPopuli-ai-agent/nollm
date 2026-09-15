@@ -81,7 +81,7 @@ Files of other types, binary files, lockfiles, minified files, and files over 2 
 | `banned-word`         | genuinely, load-bearing, crutch, spearheaded, fails loudly, and friends |
 | `em-dash`             | The em dash character                                                   |
 | `bold-list-item`      | List items like `- **Label:** plain text`                               |
-| `filler-word`         | simply, robust, leverage, utilize, in order to, keep in mind, and more  |
+| `filler-word`         | simply, seamlessly, seamless, robust                                    |
 | `llm-vocabulary`      | delve, tapestry, crucial, game-changer, battle-tested, and more         |
 | `chat-opener`         | Lines that start with "Great question", "Certainly", "Let me", and more |
 | `chat-closer`         | "Hope this helps", "Let me know if", "Feel free to", and more           |
