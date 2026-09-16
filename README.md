@@ -2,6 +2,8 @@
 
 Lint against LLMisms in your codebase.
 
+Pronounced "nollum": like gollum, with an n.
+
 `nollm` reads every file that git tracks or does not ignore.
 It checks prose files line by line, and code files comment by comment.
 Each finding prints as soon as it is found.
