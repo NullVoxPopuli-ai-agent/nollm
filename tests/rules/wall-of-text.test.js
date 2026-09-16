@@ -12,8 +12,11 @@ describe("wall-of-text", () => {
   });
 
   test("flags a paragraph with too many words", () => {
-    const long = "word ".repeat(121) + "end.";
-    expect(ids(prose(long))).toEqual(["wall-of-text"]);
+    const lengths = [18, 25, 12, 20, 28, 10, 15];
+    const long = lengths.map((count) => "word ".repeat(count - 1) + "end.").join(" ");
+    const findings = prose(long);
+    expect(ids(findings)).toEqual(["wall-of-text"]);
+    expect(findings[0].text).toMatch(/^128 words, 7 sentences/);
   });
 
   test("allows several short paragraphs", () => {

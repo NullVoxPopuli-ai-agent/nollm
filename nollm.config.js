@@ -1,3 +1,3 @@
 export default {
-  ignore: ["src/rules.js", "tests/fixtures/**"],
+  ignore: ["LICENSE", "src/rules.js", "tests/fixtures/**"],
 };

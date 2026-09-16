@@ -13,6 +13,7 @@ const SENTENCE_END = /[.!?]+(?:["')\]]+)?(?:\s+|$)/;
 
 export const WALL_WORDS = 120;
 export const WALL_SENTENCES = 7;
+export const LONG_SENTENCE_WORDS = 30;
 export const UNIFORM_PARAGRAPH_MIN_WORDS = 25;
 export const UNIFORM_PARAGRAPH_SPREAD = 1.25;
 export const UNIFORM_SENTENCE_MIN_COUNT = 4;
@@ -31,7 +32,32 @@ export const UNIFORM_SENTENCE_VARIATION = 0.2;
  *   sentences    → word count per sentence
  *   preview      → its first few words
  */
-export function paragraphs(segments, { inComments = false } = {}) {
+export function paragraphs(segments, options) {
+  const result = group(segments, options);
+
+  for (let i = 0; i < result.length; i++) {
+    const paragraph = result[i];
+    const spans = paragraph.spans;
+    const sentences = [];
+    for (let s = 0; s < spans.length; s++) sentences.push(spans[s].words);
+    paragraph.sentences = sentences;
+    delete paragraph.spans;
+    delete paragraph.pieces;
+  }
+
+  return result;
+}
+
+/**
+ * Groups segments into paragraphs and keeps where each sentence starts.
+ *
+ * Each paragraph has the public fields, plus two internal ones:
+ *   spans  → { offset, words, preview } per sentence
+ *   pieces → { offset, line, column } per source line
+ *
+ * locate() turns an offset into the paragraph's text back into a position.
+ */
+function group(segments, { inComments = false } = {}) {
   const result = [];
   let current = null;
   let inFence = false;
@@ -56,25 +82,44 @@ export function paragraphs(segments, { inComments = false } = {}) {
     }
 
     if (gap || current === null || LIST_ITEM.test(text)) {
-      current = { line: segment.line, column: segment.column, text: "" };
+      current = { line: segment.line, column: segment.column, text: "", pieces: [] };
       result.push(current);
     }
 
-    current.text += current.text.length === 0 ? text : " " + text;
+    if (current.text.length > 0) current.text += " ";
+    current.pieces.push({
+      offset: current.text.length,
+      line: segment.line,
+      column: segment.column + segment.text.indexOf(text),
+    });
+    current.text += text;
   }
 
   for (let i = 0; i < result.length; i++) {
     const paragraph = result[i];
-    const sentences = sentenceLengths(paragraph.text);
+    const spans = sentenceSpans(paragraph.text);
     let words = 0;
-    for (let s = 0; s < sentences.length; s++) words += sentences[s];
-    paragraph.sentences = sentences;
+    for (let s = 0; s < spans.length; s++) words += spans[s].words;
+    paragraph.spans = spans;
     paragraph.words = words;
     paragraph.preview = preview(paragraph.text);
     delete paragraph.text;
   }
 
   return result;
+}
+
+/**
+ * The line and column of an offset into a paragraph's text.
+ */
+function locate(paragraph, offset) {
+  const pieces = paragraph.pieces;
+  let piece = pieces[0];
+  for (let i = 1; i < pieces.length; i++) {
+    if (pieces[i].offset > offset) break;
+    piece = pieces[i];
+  }
+  return { line: piece.line, column: piece.column + (offset - piece.offset) };
 }
 
 export function wallOfText(segments, scope) {
@@ -89,6 +134,26 @@ export function wallOfText(segments, scope) {
       column: paragraph.column,
       text: `${paragraph.words} words, ${paragraph.sentences.length} sentences: ${paragraph.preview}`,
     });
+  }
+
+  return found;
+}
+
+export function longSentences(segments, scope) {
+  const found = [];
+  const all = group(segments, { inComments: scope === "comments" });
+
+  for (let i = 0; i < all.length; i++) {
+    const spans = all[i].spans;
+    for (let s = 0; s < spans.length; s++) {
+      if (spans[s].words <= LONG_SENTENCE_WORDS) continue;
+      const at = locate(all[i], spans[s].offset);
+      found.push({
+        line: at.line,
+        column: at.column,
+        text: `${spans[s].words} words: ${spans[s].preview}`,
+      });
+    }
   }
 
   return found;
@@ -161,14 +226,23 @@ function strip(text) {
   return text.replace(TRAILER, "").replace(MARKER, "").trim();
 }
 
-function sentenceLengths(text) {
-  const parts = text.split(SENTENCE_END);
-  const lengths = [];
-  for (let i = 0; i < parts.length; i++) {
-    const count = wordCount(parts[i]);
-    if (count > 0) lengths.push(count);
+function sentenceSpans(text) {
+  const spans = [];
+  const ends = new RegExp(SENTENCE_END.source, "g");
+  let start = 0;
+  let match;
+
+  while ((match = ends.exec(text)) !== null) {
+    push(start, text.slice(start, match.index));
+    start = match.index + match[0].length;
   }
-  return lengths;
+  push(start, text.slice(start));
+  return spans;
+
+  function push(offset, part) {
+    const count = wordCount(part);
+    if (count > 0) spans.push({ offset, words: count, preview: preview(part) });
+  }
 }
 
 function wordCount(text) {

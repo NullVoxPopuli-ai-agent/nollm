@@ -88,9 +88,16 @@ Files of other types, binary files, lockfiles, minified files, and files over 2 
 | `ai-disclosure`       | "As an AI", "my training data", and more                                |
 | `contrast-cliche`     | "not just X, but Y" and "it's not X, it's Y"                            |
 | `rhetorical-question` | "Why? Because" and "The result?"                                        |
-| `emoji`               | Emoji                                                                   |
-| `diff-comment`        | Comments about the change: "no longer", "as discussed", "previously"    |
+| `emoji-list`          | List items that start with an emoji                                     |
+| `diff-comment`        | Comments about the change: "no longer", "as discussed", "Previously,"   |
 | `what-comment`        | Comments that narrate the code: "This function returns", "Loop over"    |
+| `quoted-error`        | Comments that quote an error message: `"Cannot read properties of..."`  |
+| `dramatic-verb`       | blows up, dies with, falls over, chokes on, and friends                 |
+| `parenthetical-aside` | Asides like `(and their compiled handles)`                              |
+| `long-sentence`       | A sentence over 30 words                                                |
+| `wall-of-text`        | A paragraph over 120 words or 7 sentences                               |
+| `uniform-paragraphs`  | Three or more paragraphs in a row of about the same length              |
+| `uniform-sentences`   | Four or more sentences of about the same length                         |
 
 Run `nollm --list-rules` for the full list with the scope of each rule.
 

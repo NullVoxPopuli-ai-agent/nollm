@@ -2,8 +2,20 @@ import { describe, expect, test } from "vitest";
 import { check } from "../../src/index.js";
 import { ids, prose } from "../helpers.js";
 
+const SENTENCE_LENGTHS = [9, 14, 7];
+
+/**
+ * A paragraph of the given word count, in sentences of varied length,
+ * so that only the paragraph rules have anything to say about it.
+ */
 function paragraph(words) {
-  return "word ".repeat(words - 1) + "end.";
+  const sentences = [];
+  for (let i = 0; words > 0; i++) {
+    const count = Math.min(words, SENTENCE_LENGTHS[i % SENTENCE_LENGTHS.length]);
+    sentences.push("word ".repeat(count - 1) + "end.");
+    words -= count;
+  }
+  return sentences.join(" ");
 }
 
 describe("uniform-paragraphs", () => {

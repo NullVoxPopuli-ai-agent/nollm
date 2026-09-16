@@ -1,4 +1,4 @@
-import { uniformParagraphs, uniformSentences, wallOfText } from "./shape.js";
+import { longSentences, uniformParagraphs, uniformSentences, wallOfText } from "./shape.js";
 
 /**
  * A rule is a regular expression plus a message,
@@ -146,8 +146,6 @@ const DIFF_TALK = [
   "used to be",
   "used to use",
   "used to return",
-  "previously",
-  "formerly",
   "the old implementation",
   "the old version",
   "the old code",
@@ -167,6 +165,53 @@ const DIFF_TALK = [
   "now lives",
   "moved to",
 ];
+
+// Diff talk only when it opens a sentence. "used previously" is fine.
+const DIFF_OPENERS = ["previously", "formerly"];
+
+const DRAMATIC_VERBS = [
+  "blow up",
+  "blows up",
+  "blowing up",
+  "blew up",
+  "die with",
+  "dies with",
+  "died with",
+  "fall over",
+  "falls over",
+  "fell over",
+  "choke on",
+  "chokes on",
+  "choked on",
+  "trip over",
+  "trips over",
+  "tripped over",
+  "bites us",
+  "bites you",
+  "bit us",
+  "explode",
+  "explodes",
+  "exploded",
+  "barf",
+  "barfs",
+];
+
+const ERROR_OPENERS = [
+  "Cannot",
+  "Could not",
+  "Couldn't",
+  "Unable to",
+  "Failed to",
+  "Unexpected",
+  "Invalid",
+  "Expected",
+  "Missing",
+  "Uncaught",
+  "Assertion Failed",
+  "Maximum call stack",
+];
+
+const ASIDE_OPENERS = ["and", "but", "though", "although", "plus", "as well as", "not to mention"];
 
 const WHAT_COMMENT_STARTS = [
   "this function",
@@ -207,6 +252,9 @@ const WHAT_COMMENT_STARTS = [
 
 // A comment starts after its marker, so the rule skips the marker first.
 const COMMENT_START = String.raw`^\s*(?:\/\/+|#+|\*+|\/\*+|<!--|--|;+|%+|"""|''')?\s*`;
+
+// The start of a comment or of a sentence, as a lookbehind.
+const SENTENCE_START = String.raw`(?<=${COMMENT_START}|[.!?:;]\s+)`;
 
 export const rules = [
   {
@@ -277,14 +325,42 @@ export const rules = [
   {
     id: "diff-comment",
     message: "Comment describes the change, not the code. Put it in the commit message",
-    pattern: anyOf(DIFF_TALK),
+    pattern: new RegExp(
+      String.raw`\b(?:${words(DIFF_TALK)})\b|${SENTENCE_START}(?:${words(DIFF_OPENERS)})\b`,
+      "gmi",
+    ),
     scope: "comments",
+  },
+  {
+    id: "quoted-error",
+    message:
+      "Comment quotes an error message. Say what breaks and why, not what the terminal printed",
+    pattern: new RegExp(
+      String.raw`["\u201C](?:(?:${words(ERROR_OPENERS)})\b|\w+Error:|\w+ is not (?:a function|defined|iterable)\b)[^"\u201D\n]*["\u201D]?`,
+      "g",
+    ),
+    scope: "comments",
+  },
+  {
+    id: "dramatic-verb",
+    message: "Dramatic failure verb. Say what happens: throws, hangs, returns null",
+    pattern: anyOf(DRAMATIC_VERBS),
+  },
+  {
+    id: "parenthetical-aside",
+    message: "Parenthetical aside. Make it a sentence, or delete it",
+    pattern: new RegExp(String.raw`\((?:${words(ASIDE_OPENERS)})\b[^()\n]*\)?`, "gi"),
   },
   {
     id: "what-comment",
     message: "Comment narrates what the code does. Say why, or delete it",
     pattern: new RegExp(String.raw`${COMMENT_START}(?:${words(WHAT_COMMENT_STARTS)})\b`, "gmi"),
     scope: "comments",
+  },
+  {
+    id: "long-sentence",
+    message: "Long sentence. One idea per sentence",
+    check: longSentences,
   },
   {
     id: "wall-of-text",
