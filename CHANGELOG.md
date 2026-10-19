@@ -1,5 +1,21 @@
 # Changelog
 
+## Release (2026-10-19)
+
+* nollm 0.8.0 (minor)
+
+#### :rocket: Enhancement
+* `nollm`
+  * [#27](https://github.com/NullVoxPopuli/nollm/pull/27) Add a no-x-no-y rule ([@NullVoxPopuli-ai-agent](https://github.com/NullVoxPopuli-ai-agent))
+
+#### :bug: Bug Fix
+* `nollm`
+  * [#25](https://github.com/NullVoxPopuli/nollm/pull/25) Print a clear error on Node versions older than 24 ([@NullVoxPopuli](https://github.com/NullVoxPopuli))
+
+#### Committers: 2
+- @NullVoxPopuli's reduced-access machine account for AI usage ([@NullVoxPopuli-ai-agent](https://github.com/NullVoxPopuli-ai-agent))
+- [@NullVoxPopuli](https://github.com/NullVoxPopuli)
+
 ## Release (2026-09-26)
 
 * nollm 0.7.0 (minor)
