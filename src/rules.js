@@ -1,6 +1,7 @@
 import {
   longSentences,
   midPhraseBreaks,
+  noRuns,
   uniformParagraphs,
   uniformSentences,
   wallOfText,
@@ -593,6 +594,11 @@ export const rules = [
     message: "Comment narrates what the code does. Say why, or delete it",
     pattern: new RegExp(String.raw`${COMMENT_START}(?:${words(WHAT_COMMENT_STARTS)})\b`, "gmi"),
     scope: "comments",
+  },
+  {
+    id: "no-x-no-y",
+    message: "Sentences in a row that start with No. Say what is there",
+    check: noRuns,
   },
   {
     id: "mid-phrase-break",

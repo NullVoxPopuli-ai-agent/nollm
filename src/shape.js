@@ -99,6 +99,9 @@ export const UNIFORM_PARAGRAPH_SPREAD = 1.25;
 export const UNIFORM_SENTENCE_MIN_COUNT = 4;
 export const UNIFORM_SENTENCE_MIN_WORDS = 8;
 export const UNIFORM_SENTENCE_VARIATION = 0.2;
+export const NO_RUN_MIN = 2;
+
+const NO_OPENER = /^No\s/;
 
 /**
  * Groups segments into paragraphs.
@@ -233,6 +236,35 @@ export function longSentences(segments, scope) {
         column: at.column,
         text: `${spans[s].words} words: ${spans[s].preview}`,
       });
+    }
+  }
+
+  return found;
+}
+
+/**
+ * Runs of sentences that each start with "No": "No config. No build step."
+ * Each one names a thing that is missing, and the run never says what is there.
+ */
+export function noRuns(segments, scope) {
+  const found = [];
+  const all = group(segments, { inComments: scope === "comments" });
+
+  for (let i = 0; i < all.length; i++) {
+    const spans = all[i].spans;
+    let s = 0;
+    while (s < spans.length) {
+      let end = s;
+      while (end < spans.length && NO_OPENER.test(spans[end].preview)) end++;
+      if (end - s >= NO_RUN_MIN) {
+        const at = locate(all[i], spans[s].offset);
+        found.push({
+          line: at.line,
+          column: at.column,
+          text: `${end - s} sentences: ${spans[s].preview}`,
+        });
+      }
+      s = Math.max(end, s + 1);
     }
   }
 
